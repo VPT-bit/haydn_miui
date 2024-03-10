@@ -42,50 +42,6 @@ done
 vbmeta-disable-verification ./vbmeta.img > /dev/null 2>&1 && green "Disable Vbmeta Successfully" || error "Failed To Disable Verification"
 
 # add gpu driver
-cd ${work_dir}
-blue "Installing Gpu Driver..."
-echo /system/system/lib/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/libEGL.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/libGLESv1_CM.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/libGLESv2.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/libGLESv3.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib64/libvulkan.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib/libEGL.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib/libGLESv1_CM.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib/libGLESv2.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib/libGLESv3.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-echo /system/system/lib/libvulkan.so u:object_r:system_lib_file:s0 >> ./rom/images/config/system_file_contexts
-###
-echo /vendor/etc/sphal_libraries.txt u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libEGL_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libGLESv2_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libadreno_app_profiles.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libq3dtools_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libllvm-qgl.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libllvm-glnext.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libllvm-qcom.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/hw/vulkan.adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/egl/ u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/ u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libVkLayer_ADRENO_qprofiler.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libVkLayer_ADRENO_qprofiler.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libEGL_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libGLESv2_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libadreno_app_profiles.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libq3dtools_adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/hw/vulkan.adreno.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libllvm-qgl.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libllvm-glnext.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libllvm-qcom.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/egl/ u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libdmabufheap.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib/libdmabufheap.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libCB.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/notgsl.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-echo /vendor/lib64/libadreno_utils.so u:object_r:same_process_hal_file:s0 >> ./rom/images/config/vendor_file_contexts
-###
-cp -rf ./patch_rom/vendor/* ./rom/images/vendor > /dev/null 2>&1 && green "Add GPU Driver Successfully" || error "Failed To Add Gpu Driver"
 
 # add leica camera
 cd tmp
