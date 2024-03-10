@@ -138,16 +138,16 @@ cd ${work_dir}
 sed -i 's/<item>120<\/item>/<item>120<\/item>\n\t\t<item>90<\/item>/g' ./rom/images/product/etc/device_features/haydn.xml
 
 # system .prop
-echo "debug.hwui.renderer=vulkan" >> ./rom/images/system/system/build.prop
-echo "bhlnk.hypervs.overlay=true" >> ./rom/images/system/system/build.prop
+echo debug.hwui.renderer=vulkan >> ./rom/images/system/system/build.prop
+echo bhlnk.hypervs.overlay=true >> ./rom/images/system/system/build.prop
 
 # vendor .prop
 sed -i 's|ro\.hwui\.use_vulkan=|ro\.hwui\.use_vulkan=true|' ./rom/images/vendor/build.prop
-echo "persist.vendor.mi_sf.optimize_for_refresh_rate.enable=1" >> ./rom/images/vendor/build.prop
-echo "ro.vendor.mi_sf.ultimate.perf.support=true"  >> ./rom/images/vendor/build.prop
-echo "ro.surface_flinger.use_content_detection_for_refresh_rate=false" >> ./rom/images/vendor/build.prop
-echo "ro.surface_flinger.set_touch_timer_ms=0" >> ./rom/images/vendor/build.prop
-echo "ro.surface_flinger.set_idle_timer_ms=0" >> ./rom/images/vendor/build.prop
+echo persist.vendor.mi_sf.optimize_for_refresh_rate.enable=1 >> ./rom/images/vendor/build.prop
+echo ro.vendor.mi_sf.ultimate.perf.support=true >> ./rom/images/vendor/build.prop
+echo ro.surface_flinger.use_content_detection_for_refresh_rate=false >> ./rom/images/vendor/build.prop
+echo ro.surface_flinger.set_touch_timer_ms=0 >> ./rom/images/vendor/build.prop
+echo ro.surface_flinger.set_idle_timer_ms=0 >> ./rom/images/vendor/build.prop
 green "Patching .prop and .xml completed"
 
 # font
