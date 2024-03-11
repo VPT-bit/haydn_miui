@@ -2,8 +2,8 @@
 export PATH=$PATH:$(pwd)/bin/
 stock_rom="$1"
 work_dir=$(pwd)
-mkdir -p ${work_dir}/tmp > /dev/null 2>&1
-mkdir -p ${work_dir}/rom/images > /dev/null 2>&1
+[ ! -d ${work_dir}/tmp ] && mkdir -p ${work_dir}/tmp > /dev/null 2>&1
+[ ! -d ${work_dir}/rom/images ] && mkdir -p ${work_dir}/rom/images > /dev/null 2>&1
 
 # Import functions
 source functions.sh
@@ -20,32 +20,40 @@ blue "Downloading ROM..."
 axel -n $(nproc) $stock_rom > /dev/null 2>&1 && green "Downloaded ROM" || error "Failed to Download ROM"
 stock_rom=$(basename $stock_rom)
 if unzip -l ${stock_rom} | grep -q "payload.bin"; then
-    blue "Detected PAYLOAD.BIN, Unpacking ROM..."
-    unzip ${stock_rom} payload.bin -d rom/images/ > /dev/null 2>&1 && green "Unpacked ROM" || error "Failed to Unzip Rom"
-    rm -rf ${stock_rom}
+            blue "Detected PAYLOAD.BIN, Unpacking ROM..."
+            unzip ${stock_rom} payload.bin -d rom/images/ > /dev/null 2>&1 && green "Unpacked ROM" || error "Failed to Unzip Rom"
+            rm -rf ${stock_rom}
 else
-    error "Unsupported"
-    exit
+            error "Unsupported"
+            exit
 fi
 
 # extract payload.bin & image
 cd rom/images
 blue "Extracting Payload.bin"
-payload-dumper-go -o . payload.bin > /dev/null 2>&1 && green "Extracted Payload.bin" || error "Failed To Extract Payload.bin"
-rm -rf payload.bin
+if [ -f payload.bin ]; then
+            payload-dumper-go -o . payload.bin > /dev/null 2>&1 && green "Extracted Payload.bin" || error "Failed To Extract Payload.bin"
+            rm -rf payload.bin
+else
+            error "Payload.bin Doesn't Exist"
+fi
+
 blue "Extracting Image Partition..."
 for pname in system product vendor; do
-    extract.erofs -i ${pname}.img -x > /dev/null 2>&1
-    rm -rf ${pname}.img
-    [ -d ${pname} ] && green "Extracted ${pname} [EROFS] Successfully" || error "Failed to Extract ${pname} "
+            extract.erofs -i ${pname}.img -x > /dev/null 2>&1
+            rm -rf ${pname}.img
+            if [ -d ${pname} ] && [ ! -f ${pname}.img ]; then
+                        green "Extracted ${pname} [EROFS] Successfully"
+            else
+                        error "Failed to Extract ${pname}"
+            fi
 done
 vbmeta-disable-verification vbmeta.img > /dev/null 2>&1 && green "Disable Vbmeta Successfully" || error "Failed To Disable Verification"
 
 # add gpu driver
-<<<<<<< HEAD
-cd ${work_dir}
+cd ${work_dir} && echo $(pwd)
 blue "Installing Gpu Driver..."
-echo /system/system/lib/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
+echo /system/system/lib/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts && check_gpu_system=1
 echo /system/system/lib64/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
 echo /system/system/lib64/libEGL.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
 echo /system/system/lib64/libGLESv1_CM.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
@@ -58,7 +66,7 @@ echo /system/system/lib/libGLESv2.so u:object_r:system_lib_file:s0 >> rom/images
 echo /system/system/lib/libGLESv3.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
 echo /system/system/lib/libvulkan.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
 ###
-echo /vendor/etc/sphal_libraries.txt u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
+echo /vendor/etc/sphal_libraries.txt u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts && check_gpu_vendor=1
 echo /vendor/lib/libEGL_adreno.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
 echo /vendor/lib/libGLESv2_adreno.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
 echo /vendor/lib/libadreno_app_profiles.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
@@ -86,25 +94,35 @@ echo /vendor/lib64/libCB.so u:object_r:same_process_hal_file:s0 >> rom/images/co
 echo /vendor/lib64/notgsl.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
 echo /vendor/lib64/libadreno_utils.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
 ###
-cp -rf patch_rom/vendor/* rom/images/vendor > /dev/null 2>&1 && green "Add GPU Driver Successfully" || error "Failed To Add Gpu Driver"
-=======
->>>>>>> 213fc95b6f1537c039b33af3ba4bec89a20c006b
+if [ check_gpu_vendor==1 ] && [ check_gpu_system==1 ]; then
+            cp -rf patch_rom/vendor/* rom/images/vendor > /dev/null 2>&1 && green "Add GPU Driver Successfully" || error "Failed To Add Gpu Driver"
+else
+            error "Failed To Add Gpu Driver"
+fi
 
 # add leica camera
-cd tmp
-blue "Installing Leica Camera..."
-axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/HolyBearMiuiCamera.apk > /dev/null 2>&1
-mv HolyBearMiuiCamera.apk MiuiCamera.apk > /dev/null 2>&1
-cd ${work_dir}
-mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica Camera Successfully" || error "Failed To Add Leica Camera"
-rm -rf tmp/*
+if [ -f rom/images/product/priv-app/MiuiCamera/MiuiCamera.apk ]; then
+        cd tmp
+        blue "Installing Leica Camera..."
+        axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/HolyBearMiuiCamera.apk > /dev/null 2>&1
+        mv HolyBearMiuiCamera.apk MiuiCamera.apk > /dev/null 2>&1
+        cd ${work_dir}
+        mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica Camera Successfully" || error "Failed To Add Leica Camera"
+        rm -rf tmp/*
+else
+        error "Wrong Directory"
+fi
     
 # add launcher mod
-mv -v patch_rom/product/priv-app/MiuiHomeT/MiuiHomeT.apk rom/images/product/priv-app/MiuiHomeT > /dev/null 2>&1
-mv -v patch_rom/product/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/product/etc/permissions > /dev/null 2>&1
-mv -v patch_rom/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/system/system/etc/permissions > /dev/null 2>&1
-mv -v patch_rom/product/overlay/MiuiPocoLauncherResOverlay.apk rom/images/product/overlay > /dev/null 2>&1
-[ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add Launcher Mod Successfully" || error "Fail"
+if [ -f rom/images/product/priv-app/MiuiHomeT/MiuiHomeT.apk ]; then
+        mv -v patch_rom/product/priv-app/MiuiHomeT/MiuiHomeT.apk rom/images/product/priv-app/MiuiHomeT > /dev/null 2>&1
+        mv -v patch_rom/product/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/product/etc/permissions > /dev/null 2>&1
+        mv -v patch_rom/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/system/system/etc/permissions > /dev/null 2>&1
+        mv -v patch_rom/product/overlay/MiuiPocoLauncherResOverlay.apk rom/images/product/overlay > /dev/null 2>&1
+        [ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add Launcher Mod Successfully" || error "Failed to Add Launcher"
+else
+        error "Wrong Directory"
+fi
 
 # add xiaomi.eu extension
 mkdir -p rom/images/product/priv-app/XiaomiEuExt > /dev/null 2>&1
@@ -118,21 +136,25 @@ mv -v patch_rom/system/system/app/PowerKeeper/PowerKeeper.apk rom/images/system/
 green "Patch Performance Successfully"
 
 # add overlay
-blue "Building the Overlay..."
-git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
-cd overlay
-sudo chmod +x build.sh > /dev/null 2>&1
-build.sh > /dev/null 2>&1
-cd ${work_dir}
-mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay Build Has Been Completed" || error "Failed To Add Overlay"
-rm -rf overlay
+if [ -d rom/images/product/overlay ]; then
+        blue "Building the Overlay..."
+        git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
+        cd overlay
+        sudo chmod +x build.sh > /dev/null 2>&1
+        build.sh > /dev/null 2>&1
+        cd ${work_dir}
+        mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay Build Has Been Completed" || error "Failed To Add Overlay"
+        rm -rf overlay
+else
+        error "Wrong Directory"
+fi
 
 # disable apk protection
 blue "Disabling Apk Protection..."
 cd ${work_dir}
-cp -rf rom/images/system/system/framework/services.jar services.jar > /dev/null 2>&1
+cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
 remove_apk_protection && green "Disable Apk Protection Successfully" || error "Failed To Disable Apk Protection"
-cp -rf tmp/services.jar rom/images/system/system/framework/services.jar > /dev/null 2>&1
+mv tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1
 
 # patch .prop and .xml
 cd ${work_dir}
@@ -146,11 +168,6 @@ echo bhlnk.hypervs.overlay=true >> rom/images/system/system/build.prop
 
 # vendor .prop
 sed -i 's|ro\.hwui\.use_vulkan=|ro\.hwui\.use_vulkan=true|' rom/images/vendor/build.prop
-echo persist.vendor.mi_sf.optimize_for_refresh_rate.enable=1 >> rom/images/vendor/build.prop
-echo ro.vendor.mi_sf.ultimate.perf.support=true >> rom/images/vendor/build.prop
-echo ro.surface_flinger.use_content_detection_for_refresh_rate=false >> rom/images/vendor/build.prop
-echo ro.surface_flinger.set_touch_timer_ms=0 >> rom/images/vendor/build.prop
-echo ro.surface_flinger.set_idle_timer_ms=0 >> rom/images/vendor/build.prop
 green "Patching .prop and .xml completed"
 
 # font
