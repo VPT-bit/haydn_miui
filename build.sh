@@ -132,7 +132,6 @@ mv -v patch_rom/product/etc/permissions/privapp_whitelist_eu.xiaomi.ext.xml rom/
 
 # patch performance
 mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
-mv -v patch_rom/system/system/app/PowerKeeper/PowerKeeper.apk rom/images/system/system/app/PowerKeeper > /dev/null 2>&1
 green "Patch Performance Successfully"
 
 # add overlay
