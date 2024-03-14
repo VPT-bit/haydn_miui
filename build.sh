@@ -17,7 +17,7 @@ sudo chmod 777 -R *
 
 # unzip rom
 blue "Downloading ROM..."
-axel -n $(nproc) $stock_rom > /dev/null 2>&1 && green "Downloaded ROM" || error "Failed to Download ROM"
+axel -n $(nproc) $stock_rom > /dev/null 2>&1 && green "ROM Downloaded" || error "Failed to Download ROM"
 stock_rom=$(basename $stock_rom)
 if unzip -l ${stock_rom} | grep -q "payload.bin"; then
             blue "Detected PAYLOAD.BIN, Unpacking ROM..."
@@ -51,7 +51,7 @@ done
 vbmeta-disable-verification vbmeta.img > /dev/null 2>&1 && green "Disable Vbmeta Successfully" || error "Failed To Disable Verification"
 
 # add gpu driver
-cd ${work_dir} && echo $(pwd)
+cd ${work_dir}
 blue "Installing Gpu Driver..."
 echo /system/system/lib/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts && check_gpu_system=1
 echo /system/system/lib64/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
@@ -187,26 +187,26 @@ rm -rf rom/images/product/app/AnalyticsCore > /dev/null 2>&1
 rm -rf rom/images/product/app/MSA > /dev/null 2>&1
 rm -rf rom/images/product/priv-app/MIUIBrowser > /dev/null 2>&1
 rm -rf rom/images/product/priv-app/MIUIQuickSearchBox > /dev/null 2>&1
-cp -r tmp/* rom/images/product/data-app > /dev/null 2>&1 && green "Debloat Completed" || error "Failed To Debloat"
+cp -rf tmp/* rom/images/product/data-app > /dev/null 2>&1 && green "Debloat Completed" || error "Failed To Debloat"
 rm -rf tmp/*
 
 # patch context and fsconfig
 for pname in system product vendor; do
-    python3 bin/contextpatch.py rom/images/${pname} rom/images/config/${pname}_file_contexts && check_contexts=1 || check_contexts=0
-    python3 bin/fspatch.py rom/images/${pname} rom/images/config/${pname}_fs_config && check_fs=1 || check_fs=0
-    if [ $check_contexts == "1" ] && [ $check_fs == "1" ]; then
-        green "Patching ${pname} Contexts and Fs_config Completed"
-    else
-        error "Patching ${pname} Contexts and Fs_config Failed"
-    fi
+          python3 bin/contextpatch.py rom/images/${pname} rom/images/config/${pname}_file_contexts > /dev/null 2>&1 && check_contexts=1 || check_contexts=0
+          python3 bin/fspatch.py rom/images/${pname} rom/images/config/${pname}_fs_config > /dev/null 2>&1 && check_fs=1 || check_fs=0
+          if [ $check_contexts == "1" ] && [ $check_fs == "1" ]; then
+              green "Patching ${pname} Contexts and Fs_config Completed"
+          else
+              error "Patching ${pname} Contexts and Fs_config Failed"
+          fi
 done
 cd rom/images
 for pname in system product vendor; do
-    option=`sed -n '3p' config/${pname}_fs_options | cut -c28-`
-    mkfs.erofs $option > /dev/null 2>&1
-    rm -rf ${pname}
-    mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
-    [ -f ${pname}.img ] && green "Packaging ${pname} [EROFS] Is Complete" || error "Packaging ${pname} Failed"
+          option=`sed -n '3p' config/${pname}_fs_options | cut -c28-`
+          mkfs.erofs $option > /dev/null 2>&1
+          rm -rf ${pname}
+          mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
+          [ -f ${pname}.img ] && green "Packaging ${pname} [EROFS] Is Complete" || error "Packaging ${pname} Failed"
 done
 
 # pack super
@@ -226,7 +226,7 @@ command_super="$command_super --virtual-ab --sparse --output ./super"
 lpmake ${command_super} > /dev/null 2>&1
 for pname in product system system_ext vendor odm mi_ext;
 do
-    rm -rf ${pname}.img
+          rm -rf ${pname}.img
 done
 [ -f super ] && green "Super [vA/B] Has Been Packaged" || error "Packaging Super Failed"
 ###
@@ -246,4 +246,3 @@ cd ${work_dir}
 mv -v rom/haydn_rom.zip . > /dev/null 2>&1
 rm -rf rom
 [ -f haydn_rom.zip ] && green "Done, Prepare to Upload..." || error "Failed"
-
