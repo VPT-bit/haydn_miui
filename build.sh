@@ -17,42 +17,55 @@ sudo chmod 777 -R *
 
 # unzip rom
 blue "Downloading ROM..."
-axel -n $(nproc) $stock_rom > /dev/null 2>&1 && green "ROM Downloaded" || error "Failed to Download ROM"
+axel -n $(nproc) ${stock_rom} > /dev/null 2>&1 && green "ROM downloaded" || error "Failed to download ROM"
 stock_rom=$(basename $stock_rom)
 if unzip -l ${stock_rom} | grep -q "payload.bin"; then
-            blue "Detected PAYLOAD.BIN, Unpacking ROM..."
-            unzip ${stock_rom} payload.bin -d rom/images/ > /dev/null 2>&1 && green "Unpacked ROM" || error "Failed to Unzip Rom"
+            blue "Detected PAYLOAD.BIN, unpacking ROM..."
+            unzip ${stock_rom} payload.bin -d rom/images/ > /dev/null 2>&1 && green "Unpacked ROM" || error "Failed to unpack ROM"
             rm -rf ${stock_rom}
 else
-            error "Unsupported"
-            exit
+            error "Unsupported" && exit
 fi
+
+
+# information 
+codename=$(echo $stock_rom | cut -d '_' -f 2)
+miui_version=$(echo $stock_rom | cut -d '_' -f 3 | sed 's/........$//')
+miui_info=$(echo $stock_rom | cut -d '_' -f 3 | cut -d '.' -f 5)
+android_version=$(echo $stock_rom | cut -d '_' -f 5 | cut -d '.' -f 1)
+green "ROM information:"
+green "Codename: $codename"
+green "MIUI version: $miui_version"
+green "MIUI info: $miui_info"
+green "Android version: $android_version"
+###
 
 # extract payload.bin & image
 cd rom/images
-blue "Extracting Payload.bin"
+blue "Extracting payload.bin"
 if [ -f payload.bin ]; then
-            payload-dumper-go -o . payload.bin > /dev/null 2>&1 && green "Extracted Payload.bin" || error "Failed To Extract Payload.bin"
+            payload-dumper-go -o . payload.bin > /dev/null 2>&1 && green "Extracted payload.bin" || error "Failed to extract payload.bin"
             rm -rf payload.bin
 else
-            error "Payload.bin Doesn't Exist"
+            error "Payload.bin doesn't exist" && exit
 fi
 
-blue "Extracting Image Partition..."
+blue "Extracting image partition..."
 for pname in system product vendor; do
+            blue "Extracting ${pname} from payload.bin..."
             extract.erofs -i ${pname}.img -x > /dev/null 2>&1
             rm -rf ${pname}.img
             if [ -d ${pname} ] && [ ! -f ${pname}.img ]; then
-                        green "Extracted ${pname} [EROFS] Successfully"
+                        green "Extracted ${pname} [erofs] successfully"
             else
-                        error "Failed to Extract ${pname}"
+                        error "Failed to extract ${pname}" && exit
             fi
 done
-vbmeta-disable-verification vbmeta.img > /dev/null 2>&1 && green "Disable Vbmeta Successfully" || error "Failed To Disable Verification"
+vbmeta-disable-verification vbmeta.img > /dev/null 2>&1 && green "Disable vbmeta successfully" || error "Failed to disable verification"
 
 # add gpu driver
 cd ${work_dir}
-blue "Installing Gpu Driver..."
+blue "Installing gpu driver..."
 echo /system/system/lib/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts && check_gpu_system=1
 echo /system/system/lib64/egl/libVkLayer_ADRENO_qprofiler.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
 echo /system/system/lib64/libEGL.so u:object_r:system_lib_file:s0 >> rom/images/config/system_file_contexts
@@ -95,22 +108,22 @@ echo /vendor/lib64/notgsl.so u:object_r:same_process_hal_file:s0 >> rom/images/c
 echo /vendor/lib64/libadreno_utils.so u:object_r:same_process_hal_file:s0 >> rom/images/config/vendor_file_contexts
 ###
 if [ check_gpu_vendor==1 ] && [ check_gpu_system==1 ]; then
-            cp -rf patch_rom/vendor/* rom/images/vendor > /dev/null 2>&1 && green "Add GPU Driver Successfully" || error "Failed To Add Gpu Driver"
+            cp -rf patch_rom/vendor/* rom/images/vendor > /dev/null 2>&1 && green "Add GPU driver successfully" || error "Failed to add GPU driver"
 else
-            error "Failed To Add Gpu Driver"
+            error "Failed to add GPU driver" && exit
 fi
 
 # add leica camera
 if [ -f rom/images/product/priv-app/MiuiCamera/MiuiCamera.apk ]; then
         cd tmp
-        blue "Installing Leica Camera..."
+        blue "Installing Leica camera..."
         axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/HolyBearMiuiCamera.apk > /dev/null 2>&1
         mv HolyBearMiuiCamera.apk MiuiCamera.apk > /dev/null 2>&1
         cd ${work_dir}
-        mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica Camera Successfully" || error "Failed To Add Leica Camera"
+        mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica camera successfully" || error "Failed to add leica camera"
         rm -rf tmp/*
 else
-        error "Wrong Directory"
+        error "Broken process" && exit
 fi
     
 # add launcher mod
@@ -119,44 +132,55 @@ if [ -f rom/images/product/priv-app/MiuiHomeT/MiuiHomeT.apk ]; then
         mv -v patch_rom/product/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/product/etc/permissions > /dev/null 2>&1
         mv -v patch_rom/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/system/system/etc/permissions > /dev/null 2>&1
         mv -v patch_rom/product/overlay/MiuiPocoLauncherResOverlay.apk rom/images/product/overlay > /dev/null 2>&1
-        [ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add Launcher Mod Successfully" || error "Failed to Add Launcher"
+        [ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add launcher mod successfully" || error "Failed to add launcher"
 else
-        error "Wrong Directory"
+        error "Broken process" && exit
 fi
 
 # add xiaomi.eu extension
 mkdir -p rom/images/product/priv-app/XiaomiEuExt > /dev/null 2>&1
 mv -v patch_rom/product/priv-app/XiaomiEuExt/XiaomiEuExt.apk rom/images/product/priv-app/XiaomiEuExt > /dev/null 2>&1
 mv -v patch_rom/product/etc/permissions/privapp_whitelist_eu.xiaomi.ext.xml rom/images/product/etc/permissions > /dev/null 2>&1
-[ -f rom/images/product/priv-app/XiaomiEuExt/XiaomiEuExt.apk ] && green "Add XiaomiEuExt Successfully" || error "Fail"
+[ -f rom/images/product/priv-app/XiaomiEuExt/XiaomiEuExt.apk ] && green "Add xiaomieuext successfully" || error "Fail"
 
 # patch performance
-mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
-green "Patch Performance Successfully"
+if [ -f rom/images/product/pangu/system/app/Joyose ]; then
+        mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
+        green "Patch performance successfully"
+else
+        error "Broken process" && exit
+fi
 
 # add overlay
 if [ -d rom/images/product/overlay ]; then
-        blue "Building the Overlay..."
+        blue "Building the overlay..."
         git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
         cd overlay
         sudo chmod +x build.sh > /dev/null 2>&1
         ./build.sh > /dev/null 2>&1
         cd ${work_dir}
-        mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay Build Has Been Completed" || error "Failed To Add Overlay"
+        mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay has been built" || error "Failed to add overlay"
         rm -rf overlay
 else
-        error "Wrong Directory"
+        error "Broken process" && exit
 fi
 
 # disable apk protection
-blue "Disabling Apk Protection..."
-cd ${work_dir}
-cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
-remove_apk_protection && green "Disable Apk Protection Successfully" || error "Failed To Disable Apk Protection"
-mv tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1
+if [ -f rom/images/system/system/framework/services.jar ]; then
+        blue "Disabling apk protection..."
+        cd ${work_dir}
+        cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
+        remove_apk_protection
+        mv tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
+else
+        error "Broken process" && exit
+fi
 
 # patch .prop and .xml
 cd ${work_dir}
+if [ ! -d rom/images/product ] || [ ! -d rom/images/system ] || [ ! -d rom/images/vendor ]; then
+        error "Broken process" && exit
+fi
 
 # product .prop
 sed -i 's/<item>120<\/item>/<item>120<\/item>\n\t\t<item>90<\/item>/g' rom/images/product/etc/device_features/haydn.xml
@@ -170,7 +194,7 @@ sed -i 's|ro\.hwui\.use_vulkan=|ro\.hwui\.use_vulkan=true|' rom/images/vendor/bu
 green "Patching .prop and .xml completed"
 
 # font
-mv -v patch_rom/system/system/fonts/MiSansVF.ttf rom/images/system/system/fonts > /dev/null 2>&1 && green "Replace Font Successfully" || error "Failed To Change Font"
+mv -v patch_rom/system/system/fonts/MiSansVF.ttf rom/images/system/system/fonts > /dev/null 2>&1 && green "Replace font successfully" || error "Failed to change font"
 
 # debloat
 cp -r rom/images/product/data-app/MIMediaEditor tmp > /dev/null 2>&1
@@ -187,7 +211,7 @@ rm -rf rom/images/product/app/AnalyticsCore > /dev/null 2>&1
 rm -rf rom/images/product/app/MSA > /dev/null 2>&1
 rm -rf rom/images/product/priv-app/MIUIBrowser > /dev/null 2>&1
 rm -rf rom/images/product/priv-app/MIUIQuickSearchBox > /dev/null 2>&1
-cp -rf tmp/* rom/images/product/data-app > /dev/null 2>&1 && green "Debloat Completed" || error "Failed To Debloat"
+cp -rf tmp/* rom/images/product/data-app > /dev/null 2>&1 && green "Debloat completed" || error "Failed to debloat"
 rm -rf tmp/*
 
 # patch context and fsconfig
@@ -195,9 +219,9 @@ for pname in system product vendor; do
           python3 bin/contextpatch.py rom/images/${pname} rom/images/config/${pname}_file_contexts > /dev/null 2>&1 && check_contexts=1 || check_contexts=0
           python3 bin/fspatch.py rom/images/${pname} rom/images/config/${pname}_fs_config > /dev/null 2>&1 && check_fs=1 || check_fs=0
           if [ $check_contexts == "1" ] && [ $check_fs == "1" ]; then
-              green "Patching ${pname} Contexts and Fs_config Completed"
+              green "Patching ${pname} contexts and fs_config completed"
           else
-              error "Patching ${pname} Contexts and Fs_config Failed"
+              error "Patching ${pname} contexts and fs_config failed" && exit
           fi
 done
 cd rom/images
@@ -206,43 +230,41 @@ for pname in system product vendor; do
           mkfs.erofs $option > /dev/null 2>&1
           rm -rf ${pname}
           mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
-          [ -f ${pname}.img ] && green "Packaging ${pname} [EROFS] Is Complete" || error "Packaging ${pname} Failed"
+          [ -f ${pname}.img ] && green "Packaging ${pname} [erofs] is complete" || error "Packaging ${pname} failed"
 done
 
 # pack super
-blue "Packing Super..."
+blue "Packing super..."
 command_super="--metadata-size 65536 --super-name super --metadata-slots 3 --device super:9126805504 --group qti_dynamic_partitions_a:9126805504 --group qti_dynamic_partitions_b:0"
 for pname in system system_ext product vendor odm mi_ext;
 do
           psize=`stat -c '%n %s' ${pname}.img | cut -d ' ' -f 2`
           partition_ab="--partition ${pname}_a:readonly:${psize}:qti_dynamic_partitions_a --image ${pname}_a=${pname}.img --partition ${pname}_b:readonly:0:qti_dynamic_partitions_b"
           command_super="$command_super $partition_ab "
-          unset psize
-          unset partition_ab
+          unset psize && unset partition_ab
 done
 command_super="$command_super --virtual-ab --sparse --output ./super"
 
 ###
-lpmake ${command_super} > /dev/null 2>&1
+lpmake ${command_super} > /dev/null 2>&1 && green "Packed super" || error "Failed to pack super"
 for pname in product system system_ext vendor odm mi_ext;
 do
           rm -rf ${pname}.img
 done
-[ -f super ] && green "Super [vA/B] Has Been Packaged" || error "Packaging Super Failed"
+[ -f super ] && green "Super [vA/B] has been packaged" || error "Packaging super failed"
 ###
 
-blue "Super Is Being Compressed..."
+blue "Super is being compressed..."
 zstd --rm super -o super.zst > /dev/null 2>&1
-[ -f super.zst ] && green "Super Has Been Compressed" || error "Compress Super Failed"
+[ -f super.zst ] && green "Super has been compressed" || error "Compress super failed"
 
 # cleanup
 cd ${work_dir}
-blue "Packing and Cleaning Up..."
+blue "Packing and cleaning up..."
 cp -rf patch_rom/flash/* rom
-rm -rf rom/images/config
 cd rom
 zip -r haydn_rom.zip * > /dev/null 2>&1
 cd ${work_dir}
 mv -v rom/haydn_rom.zip . > /dev/null 2>&1
 rm -rf rom
-[ -f haydn_rom.zip ] && green "Done, Prepare to Upload..." || error "Failed"
+[ -f haydn_rom.zip ] && green "Done, prepare to upload..." || error "Failed"
