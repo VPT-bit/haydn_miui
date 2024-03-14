@@ -141,7 +141,7 @@ if [ -d rom/images/product/overlay ]; then
         git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
         cd overlay
         sudo chmod +x build.sh > /dev/null 2>&1
-        build.sh > /dev/null 2>&1
+        ./build.sh > /dev/null 2>&1
         cd ${work_dir}
         mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay Build Has Been Completed" || error "Failed To Add Overlay"
         rm -rf overlay
@@ -211,27 +211,30 @@ for pname in system product vendor; do
 done
 
 # pack super
-system_size=`stat -c '%n %s' system.img | cut -d ' ' -f 2`
-system_ext_size=`stat -c '%n %s' system_ext.img | cut -d ' ' -f 2`
-product_size=`stat -c '%n %s' product.img | cut -d ' ' -f 2`
-vendor_size=`stat -c '%n %s' vendor.img | cut -d ' ' -f 2`
-odm_size=`stat -c '%n %s' odm.img | cut -d ' ' -f 2`
-mi_ext_size=`stat -c '%n %s' mi_ext.img | cut -d ' ' -f 2`
-sum_size=`echo "$system_size + $system_ext_size + $product_size + $vendor_size + $odm_size + $mi_ext_size" | bc`
-###
 blue "Packing Super..."
-command="--metadata-size 65536 --super-name super --metadata-slots 3 --device super:9126805504 --group qti_dynamic_partitions_a:$sum_size --partition product_a:readonly:$product_size:qti_dynamic_partitions_a --image product_a=product.img --partition system_a:readonly:$system_size:qti_dynamic_partitions_a --image system_a=system.img --partition system_ext_a:readonly:$system_ext_size:qti_dynamic_partitions_a --image system_ext_a=system_ext.img --partition vendor_a:readonly:$vendor_size:qti_dynamic_partitions_a --image vendor_a=vendor.img --partition odm_a:readonly:$odm_size:qti_dynamic_partitions_a --image odm_a=odm.img --partition mi_ext_a:readonly:$mi_ext_size:qti_dynamic_partitions_a --image mi_ext_a=mi_ext.img --group qti_dynamic_partitions_b:0 --partition product_b:readonly:0:qti_dynamic_partitions_b --partition system_b:readonly:0:qti_dynamic_partitions_b --partition system_ext_b:readonly:0:qti_dynamic_partitions_b --partition vendor_b:readonly:0:qti_dynamic_partitions_b --partition odm_b:readonly:0:qti_dynamic_partitions_b --partition mi_ext_b:readonly:0:qti_dynamic_partitions_b --virtual-ab --sparse --output super"
-lpmake ${command} > /dev/null 2>&1
-[ -f super ] && green "Super [Virtual-A/B] Has Been Packaged" || error "Packaging Super Failed"
+command_super="--metadata-size 65536 --super-name super --metadata-slots 3 --device super:9126805504 --group qti_dynamic_partitions_a:9126805504 --group qti_dynamic_partitions_b:0"
+for pname in system system_ext product vendor odm mi_ext;
+do
+          psize=`stat -c '%n %s' ${pname}.img | cut -d ' ' -f 2`
+          partition_ab="--partition ${pname}_a:readonly:${psize}:qti_dynamic_partitions_a --image ${pname}_a=${pname}.img --partition ${pname}_b:readonly:0:qti_dynamic_partitions_b"
+          command_super="$command_super $partition_ab "
+          unset psize
+          unset partition_ab
+done
+command_super="$command_super --virtual-ab --sparse --output ./super"
 
 ###
+lpmake ${command_super} > /dev/null 2>&1
+for pname in product system system_ext vendor odm mi_ext;
+do
+    rm -rf ${pname}.img
+done
+[ -f super ] && green "Super [vA/B] Has Been Packaged" || error "Packaging Super Failed"
+###
+
 blue "Super Is Being Compressed..."
 zstd --rm super -o super.zst > /dev/null 2>&1
 [ -f super.zst ] && green "Super Has Been Compressed" || error "Compress Super Failed"
-for part in product system system_ext vendor odm mi_ext;
-do
-    rm -rf ${part}.img
-done
 
 # cleanup
 cd ${work_dir}
