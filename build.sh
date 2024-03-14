@@ -238,7 +238,7 @@ blue "Packing super..."
 command_super="--metadata-size 65536 --super-name super --metadata-slots 3 --device super:9126805504 --group qti_dynamic_partitions_a:9126805504 --group qti_dynamic_partitions_b:0"
 for pname in system system_ext product vendor odm mi_ext;
 do
-          psize=`stat -c '%n %s' ${pname}.img | cut -d ' ' -f 2`
+          psize=$(stat -c "%s" ${pname}.img)
           partition_ab="--partition ${pname}_a:readonly:${psize}:qti_dynamic_partitions_a --image ${pname}_a=${pname}.img --partition ${pname}_b:readonly:0:qti_dynamic_partitions_b"
           command_super="$command_super $partition_ab "
           unset psize && unset partition_ab
