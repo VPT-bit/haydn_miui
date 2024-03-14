@@ -20,15 +20,14 @@ jobs:
           format: HH:mm_DD-MM-YYYY
           utcOffset: "+07:00"
           
-      - name: test
+      - name: Build
         run: |
           sudo bash build.sh ${{ github.event.inputs.ROM_URL }}
           mv -v haydn_rom.zip HAYDN_14.0.8.0_CN_${{ steps.current-time.outputs.formattedTime }}.zip
-          echo "path_zip=$(find . -type f -name "HAYDN_14.0.8.0_CN_${{ steps.current-time.outputs.formattedTime }}.zip")" >> "$GITHUB_ENV"
-          
+                    
       - name: Upload To Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.2.2
         with:
-          target: ${{ env.path_zip }}
+          target: HAYDN_14.0.8.0_CN_${{ steps.current-time.outputs.formattedTime }}.zip
           credentials: ${{ secrets.credentials }}
           parent_folder_id: ${{ secrets.folderId }}
