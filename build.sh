@@ -11,7 +11,7 @@ source functions.sh
 # Setup
 sudo apt update -y > /dev/null 2>&1
 sudo apt upgrade -y > /dev/null 2>&1
-sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup Successful" || error "Setup Failed"
+sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup successful" || error "Setup failed"
 pip3 install ConfigObj > /dev/null 2>&1
 sudo timedatectl set-timezone Asia/Ho_Chi_Minh
 sudo chmod 777 -R *
@@ -21,7 +21,7 @@ blue "Downloading ROM..."
 axel -n $(nproc) ${stock_rom} > /dev/null 2>&1 && green "ROM downloaded" || error "Failed to download ROM"
 stock_rom=$(basename $stock_rom)
 if unzip -l ${stock_rom} | grep -q "payload.bin"; then
-            blue "Detected PAYLOAD.BIN, unpacking ROM..."
+            blue "Detected payload.bin, unpacking ROM..."
             unzip ${stock_rom} payload.bin -d rom/images/ > /dev/null 2>&1 && green "Unpacked ROM" || error "Failed to unpack ROM"
             rm -rf ${stock_rom}
 else
@@ -34,7 +34,6 @@ codename=$(echo $stock_rom | cut -d '_' -f 2)
 miui_version=$(echo $stock_rom | cut -d '_' -f 3 | sed 's/........$//')
 miui_info=$(echo $stock_rom | cut -d '_' -f 3 | cut -d '.' -f 5)
 android_version=$(echo $stock_rom | cut -d '_' -f 5 | cut -d '.' -f 1)
-yellow "ROM information:"
 yellow "Codename: $codename"
 yellow "MIUI version: $miui_version"
 yellow "MIUI info: $miui_info"
@@ -167,16 +166,11 @@ else
 fi
 
 # disable apk protection
+blue "Disabling apk protection..."
 if [ -f rom/images/system/system/framework/services.jar ]; then
-        blue "Disabling apk protection..."
-        cd ${work_dir}
         cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
         remove_apk_protection
-        if [ -f tmp/services.jar ]; then
-                cp -rf tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
-        else
-                error "services.jar not found"
-        fi
+        cp -rf tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
 else
         error "Broken process" && exit
 fi
@@ -250,14 +244,12 @@ do
 done
 command_super="$command_super --virtual-ab --sparse --output ./super"
 
-###
 lpmake ${command_super} > /dev/null 2>&1 && green "Packed super" || error "Failed to pack super"
 for pname in product system system_ext vendor odm mi_ext;
 do
           rm -rf ${pname}.img
 done
 [ -f super ] && green "Super [vA/B] has been packaged" || error "Packaging super failed"
-###
 
 blue "Super is being compressed..."
 zstd --rm super -o super.zst > /dev/null 2>&1
