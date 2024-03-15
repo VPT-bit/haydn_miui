@@ -9,11 +9,11 @@ work_dir=$(pwd)
 source functions.sh
 
 # Setup
+sudo timedatectl set-timezone Asia/Ho_Chi_Minh
 sudo apt update -y > /dev/null 2>&1
 sudo apt upgrade -y > /dev/null 2>&1
 sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup successful" || error "Setup failed"
 pip3 install ConfigObj > /dev/null 2>&1
-sudo timedatectl set-timezone Asia/Ho_Chi_Minh
 sudo chmod 777 -R *
 
 # unzip rom
@@ -52,7 +52,7 @@ fi
 
 blue "Extracting image partition..."
 for pname in system product vendor; do
-            blue "Extracting ${pname} from payload.bin..."
+            blue "Extracting ${pname}..."
             extract.erofs -i ${pname}.img -x > /dev/null 2>&1
             rm -rf ${pname}.img
             if [ -d ${pname} ] && [ ! -f ${pname}.img ]; then
@@ -229,7 +229,7 @@ for pname in system product vendor; do
           mkfs.erofs $option > /dev/null 2>&1
           rm -rf ${pname}
           mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
-          [ -f ${pname}.img ] && green "Packaging ${pname} [erofs] is complete" || error "Packaging ${pname} failed"
+          [ -f ${pname}.img ] && green "Packed ${pname} [erofs]" || error "Failed to pack ${pname}"
 done
 
 # pack super
@@ -260,8 +260,12 @@ cd ${work_dir}
 blue "Packing and cleaning up..."
 cp -rf patch_rom/flash/* rom
 cd rom
-zip -r haydn_rom.zip * > /dev/null 2>&1
+zip -r ${codename}_${miui_version}_$(date +%d/%m-%T)_${android_version}.zip * > /dev/null 2>&1
 cd ${work_dir}
-mv -v rom/haydn_rom.zip . > /dev/null 2>&1
+mv -v rom/*.zip . > /dev/null 2>&1
 rm -rf rom
-[ -f haydn_rom.zip ] && green "Done, prepare to upload..." || error "Failed"
+if [ -f ${codename}_${miui_version}_$(date +%d/%m-%T)_${android_version}.zip ]; then
+        green "Done, prepare to upload..."
+else
+        error "Failed"
+fi
