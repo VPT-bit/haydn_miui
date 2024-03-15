@@ -185,7 +185,6 @@ update_netlink() {
 # Function to remove apk protection
 remove_apk_protection()
 {
-	
 	dir=$(pwd)
 	repS="python3 $dir/bin/apktool/strRep.py"
 	
@@ -301,5 +300,7 @@ remove_apk_protection()
 	
 	services
 
+        cd $dir
+	
 }
 
