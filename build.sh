@@ -34,6 +34,7 @@ codename=$(echo $stock_rom | cut -d '_' -f 2)
 miui_version=$(echo $stock_rom | cut -d '_' -f 3 | sed 's/........$//')
 miui_info=$(echo $stock_rom | cut -d '_' -f 3 | cut -d '.' -f 5)
 android_version=$(echo $stock_rom | cut -d '_' -f 5 | cut -d '.' -f 1)
+time_build=$(date +%d-%m_%T)
 yellow "Codename: $codename"
 yellow "MIUI version: $miui_version"
 yellow "MIUI info: $miui_info"
@@ -260,11 +261,12 @@ cd ${work_dir}
 blue "Packing and cleaning up..."
 cp -rf patch_rom/flash/* rom
 cd rom
-zip -r ${codename}_${miui_version}_$(date +%d-%m_%T)_${android_version}.zip * > /dev/null 2>&1
+zip -r ${codename}_${miui_version}_${time_build}_A${android_version}.zip * > /dev/null 2>&1
 cd ${work_dir}
-mv -v rom/*.zip . > /dev/null 2>&1
+mv -f rom/${codename}_${miui_version}_${time_build}_A${android_version}.zip . > /dev/null 2>&1
 rm -rf rom
-if [ -f ${codename}_${miui_version}_$(date +%d-%m_%T)_${android_version}.zip ]; then
+green "==> ${codename}_${miui_version}_${time_build}_A${android_version}.zip"
+if [ -f ${codename}_${miui_version}_${time_build}_A${android_version}.zip ]; then
         green "Done, prepare to upload..."
 else
         error "Failed"
