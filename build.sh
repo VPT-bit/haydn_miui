@@ -260,11 +260,11 @@ cd ${work_dir}
 blue "Packing and cleaning up..."
 cp -rf patch_rom/flash/* rom
 cd rom
-zip -r ${codename}_${miui_version}_$(date +%d/%m-%T)_${android_version}.zip * > /dev/null 2>&1
+zip -r ${codename}_${miui_version}_$(date +%d-%m_%T)_${android_version}.zip * > /dev/null 2>&1
 cd ${work_dir}
 mv -v rom/*.zip . > /dev/null 2>&1
 rm -rf rom
-if [ -f ${codename}_${miui_version}_$(date +%d/%m-%T)_${android_version}.zip ]; then
+if [ -f ${codename}_${miui_version}_$(date +%d-%m_%T)_${android_version}.zip ]; then
         green "Done, prepare to upload..."
 else
         error "Failed"
