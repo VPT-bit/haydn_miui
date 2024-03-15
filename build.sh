@@ -33,11 +33,11 @@ codename=$(echo $stock_rom | cut -d '_' -f 2)
 miui_version=$(echo $stock_rom | cut -d '_' -f 3 | sed 's/........$//')
 miui_info=$(echo $stock_rom | cut -d '_' -f 3 | cut -d '.' -f 5)
 android_version=$(echo $stock_rom | cut -d '_' -f 5 | cut -d '.' -f 1)
-green "ROM information:"
-green "Codename: $codename"
-green "MIUI version: $miui_version"
-green "MIUI info: $miui_info"
-green "Android version: $android_version"
+yellow "ROM information:"
+yellow "Codename: $codename"
+yellow "MIUI version: $miui_version"
+yellow "MIUI info: $miui_info"
+yellow "Android version: $android_version"
 ###
 
 # extract payload.bin & image
@@ -144,7 +144,7 @@ mv -v patch_rom/product/etc/permissions/privapp_whitelist_eu.xiaomi.ext.xml rom/
 [ -f rom/images/product/priv-app/XiaomiEuExt/XiaomiEuExt.apk ] && green "Add xiaomieuext successfully" || error "Fail"
 
 # patch performance
-if [ -f rom/images/product/pangu/system/app/Joyose ]; then
+if [ -f rom/images/product/pangu/system/app/Joyose/Joyose.apk ]; then
         mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
         green "Patch performance successfully"
 else
