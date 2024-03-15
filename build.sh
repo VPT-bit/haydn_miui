@@ -13,6 +13,7 @@ sudo apt update -y > /dev/null 2>&1
 sudo apt upgrade -y > /dev/null 2>&1
 sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup Successful" || error "Setup Failed"
 pip3 install ConfigObj > /dev/null 2>&1
+sudo timedatectl set-timezone Asia/Ho_Chi_Minh
 sudo chmod 777 -R *
 
 # unzip rom
@@ -171,7 +172,11 @@ if [ -f rom/images/system/system/framework/services.jar ]; then
         cd ${work_dir}
         cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
         remove_apk_protection
-        mv tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
+        if [ -f tmp/services.jar ]; then
+                cp -rf tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
+        else
+                error "services.jar not found"
+        fi
 else
         error "Broken process" && exit
 fi
