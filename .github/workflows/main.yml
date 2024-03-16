@@ -16,7 +16,7 @@ jobs:
       - name: Build
         run: |
           sudo bash build.sh ${{ github.event.inputs.ROM_URL }}
-          echo "rom_name=$(find . -type f -name "*.zip")" >> "${GITHUB_ENV}"
+          echo "rom_name=$(find ${GITHUB_WORKSPACE} -type f -name "HAYDN*.zip")" >> "${GITHUB_ENV}"
           
       - name: Upload To Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.2.2
