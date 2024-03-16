@@ -12,7 +12,7 @@ source functions.sh
 sudo timedatectl set-timezone Asia/Ho_Chi_Minh
 sudo apt update -y > /dev/null 2>&1
 sudo apt upgrade -y > /dev/null 2>&1
-sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup successful" || error "Setup failed"
+sudo apt-get install -y git zip unzip tar axel python3-pip zipalign apktool apksigner xmlstarlet busybox p7zip-full openjdk-8-jre android-sdk-libsparse-utils > /dev/null 2>&1 && blue "Setup successfully" || error "Setup failed"
 pip3 install ConfigObj > /dev/null 2>&1
 sudo chmod 777 -R *
 
