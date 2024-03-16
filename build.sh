@@ -51,15 +51,15 @@ else
             error "Payload.bin doesn't exist" && exit
 fi
 
-blue "Extracting image partition..."
+blue "Unpacking image partition..."
 for pname in system product vendor; do
-            blue "Extracting ${pname}..."
+            blue "Unpacking ${pname}..."
             extract.erofs -i ${pname}.img -x > /dev/null 2>&1
             rm -rf ${pname}.img
             if [ -d ${pname} ] && [ ! -f ${pname}.img ]; then
-                        green "Extracted ${pname} [erofs] successfully"
+                        green "Unpacking ${pname} [erofs] successfully"
             else
-                        error "Failed to extract ${pname}" && exit
+                        error "Failed to unpack ${pname}" && exit
             fi
 done
 vbmeta-disable-verification vbmeta.img > /dev/null 2>&1 && green "Disable vbmeta successfully" || error "Failed to disable verification"
@@ -116,26 +116,26 @@ fi
 
 # add leica camera
 if [ -f rom/images/product/priv-app/MiuiCamera/MiuiCamera.apk ]; then
-        cd tmp
-        blue "Installing Leica camera..."
-        axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/HolyBearMiuiCamera.apk > /dev/null 2>&1
-        mv HolyBearMiuiCamera.apk MiuiCamera.apk > /dev/null 2>&1
-        cd ${work_dir}
-        mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica camera successfully" || error "Failed to add leica camera"
-        rm -rf tmp/*
+            cd tmp
+            blue "Installing Leica camera..."
+            axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/HolyBearMiuiCamera.apk > /dev/null 2>&1
+            mv HolyBearMiuiCamera.apk MiuiCamera.apk > /dev/null 2>&1
+            cd ${work_dir}
+            mv -v tmp/MiuiCamera.apk rom/images/product/priv-app/MiuiCamera > /dev/null 2>&1 && green "Add Leica camera successfully" || error "Failed to add leica camera"
+            rm -rf tmp/*
 else
-        error "Broken process" && exit
+            error "Broken process" && exit
 fi
     
 # add launcher mod
 if [ -f rom/images/product/priv-app/MiuiHomeT/MiuiHomeT.apk ]; then
-        mv -v patch_rom/product/priv-app/MiuiHomeT/MiuiHomeT.apk rom/images/product/priv-app/MiuiHomeT > /dev/null 2>&1
-        mv -v patch_rom/product/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/product/etc/permissions > /dev/null 2>&1
-        mv -v patch_rom/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/system/system/etc/permissions > /dev/null 2>&1
-        mv -v patch_rom/product/overlay/MiuiPocoLauncherResOverlay.apk rom/images/product/overlay > /dev/null 2>&1
-        [ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add launcher mod successfully" || error "Failed to add launcher"
+            mv -v patch_rom/product/priv-app/MiuiHomeT/MiuiHomeT.apk rom/images/product/priv-app/MiuiHomeT > /dev/null 2>&1
+            mv -v patch_rom/product/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/product/etc/permissions > /dev/null 2>&1
+            mv -v patch_rom/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml rom/images/system/system/etc/permissions > /dev/null 2>&1
+            mv -v patch_rom/product/overlay/MiuiPocoLauncherResOverlay.apk rom/images/product/overlay > /dev/null 2>&1
+            [ -f rom/images/system/system/etc/permissions/privapp_whitelist_com.miui.home.xml ] && green "Add launcher mod successfully" || error "Failed to add launcher"
 else
-        error "Broken process" && exit
+            error "Broken process" && exit
 fi
 
 # add xiaomi.eu extension
@@ -146,22 +146,22 @@ mv -v patch_rom/product/etc/permissions/privapp_whitelist_eu.xiaomi.ext.xml rom/
 
 # patch performance
 if [ -f rom/images/product/pangu/system/app/Joyose/Joyose.apk ]; then
-        mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
-        green "Patch performance successfully"
+            mv -v patch_rom/product/pangu/system/app/Joyose/Joyose.apk rom/images/product/pangu/system/app/Joyose > /dev/null 2>&1
+            green "Patch performance successfully"
 else
-        error "Broken process" && exit
+            error "Broken process" && exit
 fi
 
 # add overlay
 if [ -d rom/images/product/overlay ]; then
-        blue "Building the overlay..."
-        git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
-        cd overlay
-        sudo chmod +x build.sh > /dev/null 2>&1
-        ./build.sh > /dev/null 2>&1
-        cd ${work_dir}
-        mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay has been built" || error "Failed to add overlay"
-        rm -rf overlay
+            blue "Building the overlay..."
+            git clone https://github.com/VPT-bit/overlay.git > /dev/null 2>&1
+            cd overlay
+            sudo chmod +x build.sh > /dev/null 2>&1
+            ./build.sh > /dev/null 2>&1
+            cd ${work_dir}
+            mv -v overlay/output/* rom/images/product/overlay > /dev/null 2>&1 && green "Overlay has been built" || error "Failed to add overlay"
+            rm -rf overlay
 else
         error "Broken process" && exit
 fi
@@ -169,17 +169,17 @@ fi
 # disable apk protection
 blue "Disabling apk protection..."
 if [ -f rom/images/system/system/framework/services.jar ]; then
-        cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
-        remove_apk_protection
-        cp -rf tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
+            cp -rf rom/images/system/system/framework/services.jar . > /dev/null 2>&1
+            remove_apk_protection
+            cp -rf tmp/services.jar rom/images/system/system/framework > /dev/null 2>&1 && green "Disable apk protection successfully" || error "Failed to disable apk protection"
 else
-        error "Broken process" && exit
+            error "Broken process" && exit
 fi
 
 # patch .prop and .xml
 cd ${work_dir}
 if [ ! -d rom/images/product ] || [ ! -d rom/images/system ] || [ ! -d rom/images/vendor ]; then
-        error "Broken process" && exit
+            error "Broken process" && exit
 fi
 
 # product .prop
@@ -191,6 +191,11 @@ echo bhlnk.hypervs.overlay=true >> rom/images/system/system/build.prop
 
 # vendor .prop
 sed -i 's|ro\.hwui\.use_vulkan=|ro\.hwui\.use_vulkan=true|' rom/images/vendor/build.prop
+echo persist.vendor.mi_sf.optimize_for_refresh_rate.enable=1 >> rom/images/vendor/build.prop
+echo ro.vendor.mi_sf.ultimate.perf.support=true >> rom/images/vendor/build.prop
+echo ro.surface_flinger.use_content_detection_for_refresh_rate=false >> rom/images/vendor/build.prop
+echo ro.surface_flinger.set_touch_timer_ms=0 >> rom/images/vendor/build.prop
+echo ro.surface_flinger.set_idle_timer_ms=0 >> rom/images/vendor/build.prop
 green "Patching .prop and .xml completed"
 
 # font
@@ -215,22 +220,26 @@ cp -rf tmp/* rom/images/product/data-app > /dev/null 2>&1 && green "Debloat comp
 rm -rf tmp/*
 
 # patch context and fsconfig
+blue "Patching contexts and fsconfig..."
 for pname in system product vendor; do
-          python3 bin/contextpatch.py rom/images/${pname} rom/images/config/${pname}_file_contexts > /dev/null 2>&1 && check_contexts=1 || check_contexts=0
-          python3 bin/fspatch.py rom/images/${pname} rom/images/config/${pname}_fs_config > /dev/null 2>&1 && check_fs=1 || check_fs=0
-          if [ $check_contexts == "1" ] && [ $check_fs == "1" ]; then
-              green "Patching ${pname} contexts and fs_config completed"
-          else
-              error "Patching ${pname} contexts and fs_config failed" && exit
-          fi
+            python3 bin/contextpatch.py rom/images/${pname} rom/images/config/${pname}_file_contexts > /dev/null 2>&1 && check_contexts=1 || check_contexts=0
+            python3 bin/fspatch.py rom/images/${pname} rom/images/config/${pname}_fs_config > /dev/null 2>&1 && check_fs=1 || check_fs=0
+            if [ $check_contexts == "1" ] && [ $check_fs == "1" ]; then
+              green "Patching ${pname} contexts and fsconfig completed"
+            else
+              error "Patching ${pname} contexts and fsconfig failed" && exit
+            fi
 done
+
+# repack images
 cd rom/images
 for pname in system product vendor; do
-          option=`sed -n '3p' config/${pname}_fs_options | cut -c28-`
-          mkfs.erofs $option > /dev/null 2>&1
-          rm -rf ${pname}
-          mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
-          [ -f ${pname}.img ] && green "Packed ${pname} [erofs]" || error "Failed to pack ${pname}"
+            blue "Packing ${pname}..."
+            option=`sed -n '3p' config/${pname}_fs_options | cut -c28-`
+            mkfs.erofs $option > /dev/null 2>&1
+            rm -rf ${pname}
+            mv ${pname}_repack.img ${pname}.img > /dev/null 2>&1
+            [ -f ${pname}.img ] && green "Packing ${pname} [erofs]" || error "Failed to pack ${pname}"
 done
 
 # pack super
@@ -245,7 +254,7 @@ do
 done
 command_super="$command_super --virtual-ab --sparse --output ./super"
 
-lpmake ${command_super} > /dev/null 2>&1 && green "Packed super" || error "Failed to pack super"
+lpmake ${command_super} > /dev/null 2>&1 && green "Packing super successfully" || error "Failed to pack super"
 for pname in product system system_ext vendor odm mi_ext;
 do
           rm -rf ${pname}.img
@@ -265,9 +274,11 @@ zip -r ${codename}_${miui_version}_${time_build}_A${android_version}.zip * > /de
 cd ${work_dir}
 mv -f rom/${codename}_${miui_version}_${time_build}_A${android_version}.zip . > /dev/null 2>&1
 rm -rf rom
-green "==> ${codename}_${miui_version}_${time_build}_A${android_version}.zip"
+rm -rf tmp
 if [ -f ${codename}_${miui_version}_${time_build}_A${android_version}.zip ]; then
         green "Done, prepare to upload..."
 else
         error "Failed"
 fi
+
+# end build.sh
