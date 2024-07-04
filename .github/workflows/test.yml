@@ -1,0 +1,37 @@
+name: test
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@main
+            
+        - name: Setting Up
+          run: |
+            sudo apt-get install -y git lz4 wget zip unzip android-sdk-libsparse-utils brotli axel python3-pip zipalign apksigner xmlstarlet vim aapt p7zip-full
+            sudo pip3 install ConfigObj
+            sudo pip3 install firebase_admin
+            sudo pip3 install telebot
+            
+        - name: download
+          run: |
+            mkdir -p tmp
+            cd tmp
+            axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/boot.img
+            axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/ksud
+            axel -n $(nproc) https://github.com/VPT-bit/Patch_China_Rom_Haydn/releases/download/alpha/ksud.d
+            
+        - name: patch boot
+          run: |
+            [ -f tmp/boot.img ] && echo "Download successfully" || echo "Failed to download"
+            [ -f tmp/ksud ] && echo "Found ksud binary" && echo "not found ksud"
+            sudo chmod 777 -R *
+            ./tmp/ksud boot-patch --boot tmp/boot.img --magiskboot tmp/magiskboot --kmi android12-5.10
+            
+        - name: upload artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: boot_ksu_patch
+            path: tmp/*.img
